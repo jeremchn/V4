@@ -3524,18 +3524,10 @@ Produits : prêt-à-porter, accessoires, parfums – souvent produits en Europe 
         // Récupérer le nom de l'entreprise depuis l'URL
         const companyName = getQueryParam('company');
     
-        // Charger et analyser les données de l'entreprise depuis le fichier CSV
-        fetch('../../../companies_enriched.csv') // Chemin vers votre fichier CSV
-            .then(response => response.text())
-            .then(csvText => {
-                // Utiliser PapaParse pour analyser le CSV
-                const parsedData = Papa.parse(csvText, {
-                    header: true, // Utiliser la première ligne comme en-têtes
-                    skipEmptyLines: true // Ignorer les lignes vides
-                });
-    
-                const data = parsedData.data; // Les données
-    
+        // Charger et analyser les données de l'entreprise depuis le fichier JSON
+        fetch('../../../companies_enriched.json') // Chemin vers votre fichier JSON
+            .then(response => response.json())
+            .then(data => {
                 // Trouver les données de l'entreprise
                 const companyData = data.find(row => row['Company Name'] === companyName);
     
@@ -3554,7 +3546,7 @@ Produits : prêt-à-porter, accessoires, parfums – souvent produits en Europe 
                     document.querySelector('#headcount').textContent = companyData['Headcount'];
     
                     // Ajouter le lien LinkedIn
-                    const linkedinLink = companyData['Linkedin']; // Récupérer le lien LinkedIn depuis le CSV
+                    const linkedinLink = companyData['Linkedin']; // Récupérer le lien LinkedIn depuis le JSON
                     if (linkedinLink) {
                         const linkedinElement = document.querySelector('#linkedin');
                         linkedinElement.href = linkedinLink;
@@ -3624,23 +3616,15 @@ Produits : prêt-à-porter, accessoires, parfums – souvent produits en Europe 
                         newsList.innerHTML = '<li><p class="text-muted">Aucune actualité disponible pour cette entreprise.</p></li>';
                     }
                 } else {
-                    console.error('Entreprise non trouvée dans le fichier CSV.');
+                    console.error('Entreprise non trouvée dans le fichier JSON.');
                 }
             })
             .catch(error => console.error('Erreur lors du chargement des données :', error));
     
-        // Charger et analyser les données des contacts depuis le fichier CSV
-        fetch('../../../contacts(1).csv') // Chemin vers votre fichier CSV des contacts
-            .then(response => response.text())
-            .then(csvText => {
-                // Utiliser PapaParse pour analyser le CSV
-                const parsedData = Papa.parse(csvText, {
-                    header: true, // Utiliser la première ligne comme en-têtes
-                    skipEmptyLines: true // Ignorer les lignes vides
-                });
-    
-                const data = parsedData.data; // Les données
-    
+        // Charger et analyser les données des contacts depuis le fichier JSON
+        fetch('../../../contacts.json') // Chemin vers votre fichier JSON des contacts
+            .then(response => response.json())
+            .then(data => {
                 // Filtrer les contacts pour l'entreprise sélectionnée
                 const companyContacts = data.filter(contact => contact['Company'] === companyName);
     

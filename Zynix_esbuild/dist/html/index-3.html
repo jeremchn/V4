@@ -3132,22 +3132,10 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
 <script>
-    // Fonction pour récupérer les données des fichiers CSV
-    function fetchCSVData(filePath) {
-        return fetch(filePath)
-            .then(response => response.text())
-            .then(csvText => {
-                return Papa.parse(csvText, {
-                    header: true, // Utiliser la première ligne comme en-têtes
-                    skipEmptyLines: true // Ignorer les lignes vides
-                }).data;
-            });
-    }
-
-    // Charger et analyser les données des fichiers CSV
+    // Charger et analyser les données des fichiers JSON
     Promise.all([
-        fetchCSVData('../../../contacts.csv'), // Chemin vers le fichier des contacts
-        fetchCSVData('../../../companies_enriched.csv') // Chemin vers le fichier des entreprises
+        fetch('../../../contacts.json').then(response => response.json()), // Chemin vers le fichier JSON des contacts
+        fetch('../../../companies_enriched.json').then(response => response.json()) // Chemin vers le fichier JSON des entreprises
     ])
     .then(([contactsData, companiesData]) => {
         // Calculer le nombre total de contacts
@@ -3179,22 +3167,10 @@
 </script>
 
 <script>
-    // Fonction pour récupérer les données des fichiers CSV
-    function fetchCSVData(filePath) {
-        return fetch(filePath)
-            .then(response => response.text())
-            .then(csvText => {
-                return Papa.parse(csvText, {
-                    header: true, // Utiliser la première ligne comme en-têtes
-                    skipEmptyLines: true // Ignorer les lignes vides
-                }).data;
-            });
-    }
-
-    // Charger et analyser les données des fichiers CSV
+    // Charger et analyser les données des fichiers JSON
     Promise.all([
-        fetchCSVData('../../../contacts.csv'), // Chemin vers le fichier des contacts
-        fetchCSVData('../../../companies_enriched.csv') // Chemin vers le fichier des entreprises
+        fetch('../../../contacts.json').then(response => response.json()), // Chemin vers le fichier JSON des contacts
+        fetch('../../../companies_enriched.json').then(response => response.json()) // Chemin vers le fichier JSON des entreprises
     ])
     .then(([contactsData, companiesData]) => {
         // Calculer le nombre d'entreprises par industrie
@@ -3252,201 +3228,159 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-    // Fonction pour récupérer les données des fichiers CSV
-    function fetchCSVData(filePath) {
-        return fetch(filePath)
-            .then(response => response.text())
-            .then(csvText => {
-                return Papa.parse(csvText, {
-                    header: true, // Utiliser la première ligne comme en-têtes
-                    skipEmptyLines: true // Ignorer les lignes vides
-                }).data;
-            });
-    }
+        // Charger et analyser les données des entreprises depuis le fichier JSON
+        fetch('../../../companies_enriched.json')
+            .then(response => response.json())
+            .then(companiesData => {
+                // Trier les entreprises par "Total Score" (décroissant) et sélectionner les 5 meilleures
+                const topCompanies = companiesData
+                    .sort((a, b) => parseFloat(b["Total Score"]) - parseFloat(a["Total Score"]))
+                    .slice(0, 5);
 
-    // Charger et analyser les données des entreprises
-    fetchCSVData('../../../companies_enriched.csv') // Chemin vers le fichier CSV
-        .then(companiesData => {
-            // Trier les entreprises par "Total Score" (décroissant) et sélectionner les 5 meilleures
-            const topCompanies = companiesData
-                .sort((a, b) => parseFloat(b["Total Score"]) - parseFloat(a["Total Score"]))
-                .slice(0, 5);
+                // Générer les lignes HTML pour les actualités
+                let newsHTML = '';
+                topCompanies.forEach(company => {
+                    const companyName = company["Company Name"] || "Nom non disponible";
+                    const newsDate = company["Date"] || "Non disponible";
+                    const newsContent = company["News"] || "Aucune actualité disponible.";
 
-            // Générer les lignes HTML pour les actualités
-            let newsHTML = '';
-            topCompanies.forEach(company => {
-                const companyName = company["Company Name"] || "Nom non disponible";
-                const newsDate = company["Date"] || "Non disponible";
-                const newsContent = company["News"] || "Aucune actualité disponible.";
-
-                newsHTML += `
-                    <li>
-                        <div>
-                            <div class="d-flex align-items-center justify-content-between">
-                                <div class="fw-semibold mb-0">${companyName}</div>
-                                <span class="badge bg-light text-default border">${newsDate}</span>
-                            </div>
-                            <div class="text-muted fs-13 w-75">${newsContent}</div>
-                        </div>
-                    </li>
-                `;
-            });
-
-            // Insérer les actualités dans le conteneur HTML
-            const newsList = document.querySelector('.crm-recent-activity-list');
-            if (newsList) {
-                newsList.innerHTML = newsHTML;
-            } else {
-                console.error("L'élément .crm-recent-activity-list est introuvable.");
-            }
-        })
-        .catch(error => console.error('Erreur lors du chargement des données :', error));
-});
-</script>
-
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-    // Fonction pour récupérer les données des fichiers CSV
-    function fetchCSVData(filePath) {
-        return fetch(filePath)
-            .then(response => response.text())
-            .then(csvText => {
-                return Papa.parse(csvText, {
-                    header: true, // Utiliser la première ligne comme en-têtes
-                    skipEmptyLines: true // Ignorer les lignes vides
-                }).data;
-            });
-    }
-
-    // Charger et analyser les données des entreprises
-    fetchCSVData('../../../companies_enriched.csv') // Chemin vers le fichier CSV
-        .then(companiesData => {
-            // Trier les entreprises par "Total Score %" (décroissant) et sélectionner les 5 meilleures
-            const topCompanies = companiesData
-                .sort((a, b) => parseFloat(b["Total Score %"]) - parseFloat(a["Total Score %"]))
-                .slice(0, 5);
-
-            // Générer les lignes HTML pour les entreprises
-            let compatibilityHTML = '';
-            topCompanies.forEach(company => {
-                const companyName = company["Company Name"] || "Nom non disponible";
-                const companyDomain = company["Domain"] || "Domaine non disponible";
-                const totalScore = company["Total Score %"] || "0 %";
-
-                compatibilityHTML += `
-                    <li>
-                        <div class="d-flex align-items-center flex-wrap gap-2">
-                            <div class="lh-1">
-                                <span class="avatar avatar-sm rounded-1">
-                                    <img src="../assets/images/faces/placeholder.jpg" alt="">
-                                </span>
-                            </div>
-                            <div class="flex-fill">
-                                <span class="fw-semibold d-block lh-1">${companyName}</span>
-                                <span class="text-muted fs-13">${companyDomain}</span>
-                            </div>
-                            <div class="fw-semibold mb-0 h6">${totalScore}</div>
-                        </div>
-                    </li>
-                `;
-            });
-
-            // Insérer les entreprises dans le conteneur HTML
-            const compatibilityList = document.querySelector('#top-compatibility-list');
-            if (compatibilityList) {
-                compatibilityList.innerHTML = compatibilityHTML;
-            } else {
-                console.error("L'élément #top-compatibility-list est introuvable.");
-            }
-        })
-        .catch(error => console.error('Erreur lors du chargement des données :', error));
-});
-</script>
-
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-    // Fonction pour récupérer les données des fichiers CSV
-    function fetchCSVData(filePath) {
-        return fetch(filePath)
-            .then(response => response.text())
-            .then(csvText => {
-                return Papa.parse(csvText, {
-                    header: true, // Utiliser la première ligne comme en-têtes
-                    skipEmptyLines: true // Ignorer les lignes vides
-                }).data;
-            });
-    }
-
-    // Charger et analyser les données des contacts
-    fetchCSVData('../../../contacts.csv') // Chemin vers le fichier CSV
-        .then(contactsData => {
-            // Grouper les contacts par entreprise
-            const groupedContacts = {};
-            contactsData.forEach(contact => {
-                const company = contact["Company"] || "Entreprise inconnue";
-                if (!groupedContacts[company]) {
-                    groupedContacts[company] = contact; // Prendre le premier contact pour chaque entreprise
-                }
-            });
-
-            // Générer les lignes HTML pour les contacts
-            let contactsHTML = '';
-            let ranking = 1;
-            Object.values(groupedContacts).forEach(contact => {
-                const firstName = contact["First Name"] || "Prénom inconnu";
-                const lastName = contact["Last Name"] || "Nom inconnu";
-                const email = contact["Email"] || "Email inconnu";
-                const company = contact["Company"] || "Entreprise inconnue";
-                const position = contact["Position"] || "Métier inconnu";
-
-                contactsHTML += `
-                    <tr>
-                        <td>
-                            <span class="">${ranking++}</span>
-                        </td>
-                        <td>
-                            <div class="d-flex">
-                                <span class="avatar avatar-sm">
-                                    <img src="../assets/images/faces/placeholder.jpg" class="" alt="">
-                                </span>
-                                <div class="flex-1 ms-2">
-                                    <span class="d-block fw-semibold lh-1">${firstName} ${lastName}</span>
+                    newsHTML += `
+                        <li>
+                            <div>
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="fw-semibold mb-0">${companyName}</div>
+                                    <span class="badge bg-light text-default border">${newsDate}</span>
                                 </div>
+                                <div class="text-muted fs-13 w-75">${newsContent}</div>
                             </div>
-                        </td>
-                        <td>
-                            <span class="">${email}</span>
-                        </td>
-                        <td>
-                            <span class="">${company}</span>
-                        </td>
-                        <td>
-                            <span class="">${position}</span>
-                        </td>
-                    </tr>
-                `;
-            });
+                        </li>
+                    `;
+                });
 
-            // Insérer les contacts dans le tableau HTML
-            const contactsTableBody = document.querySelector('#contacts-table-body');
-            if (contactsTableBody) {
-                contactsTableBody.innerHTML = contactsHTML;
-            } else {
-                console.error("L'élément #contacts-table-body est introuvable.");
-            }
-        })
-        .catch(error => console.error('Erreur lors du chargement des données :', error));
-});
+                // Insérer les actualités dans le conteneur HTML
+                const newsList = document.querySelector('.crm-recent-activity-list');
+                if (newsList) {
+                    newsList.innerHTML = newsHTML;
+                } else {
+                    console.error("L'élément .crm-recent-activity-list est introuvable.");
+                }
+            })
+            .catch(error => console.error('Erreur lors du chargement des données :', error));
+    });
 </script>
 
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Charger et analyser les données des entreprises depuis le fichier JSON
+        fetch('../../../companies_enriched.json')
+            .then(response => response.json())
+            .then(companiesData => {
+                // Trier les entreprises par "Total Score %" (décroissant) et sélectionner les 5 meilleures
+                const topCompanies = companiesData
+                    .sort((a, b) => parseFloat(b["Total Score %"]) - parseFloat(a["Total Score %"]))
+                    .slice(0, 5);
 
+                // Générer les lignes HTML pour les entreprises
+                let compatibilityHTML = '';
+                topCompanies.forEach(company => {
+                    const companyName = company["Company Name"] || "Nom non disponible";
+                    const companyDomain = company["Domain"] || "Domaine non disponible";
+                    const totalScore = company["Total Score %"] || "0 %";
 
+                    compatibilityHTML += `
+                        <li>
+                            <div class="d-flex align-items-center flex-wrap gap-2">
+                                <div class="lh-1">
+                                    <span class="avatar avatar-sm rounded-1">
+                                        <img src="../assets/images/faces/placeholder.jpg" alt="">
+                                    </span>
+                                </div>
+                                <div class="flex-fill">
+                                    <span class="fw-semibold d-block lh-1">${companyName}</span>
+                                    <span class="text-muted fs-13">${companyDomain}</span>
+                                </div>
+                                <div class="fw-semibold mb-0 h6">${totalScore}</div>
+                            </div>
+                        </li>
+                    `;
+                });
 
+                // Insérer les entreprises dans le conteneur HTML
+                const compatibilityList = document.querySelector('#top-compatibility-list');
+                if (compatibilityList) {
+                    compatibilityList.innerHTML = compatibilityHTML;
+                } else {
+                    console.error("L'élément #top-compatibility-list est introuvable.");
+                }
+            })
+            .catch(error => console.error('Erreur lors du chargement des données :', error));
+    });
+</script>
 
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Charger et analyser les données des contacts depuis le fichier JSON
+        fetch('../../../contacts.json')
+            .then(response => response.json())
+            .then(contactsData => {
+                // Grouper les contacts par entreprise
+                const groupedContacts = {};
+                contactsData.forEach(contact => {
+                    const company = contact["Company"] || "Entreprise inconnue";
+                    if (!groupedContacts[company]) {
+                        groupedContacts[company] = contact; // Prendre le premier contact pour chaque entreprise
+                    }
+                });
 
+                // Générer les lignes HTML pour les contacts
+                let contactsHTML = '';
+                let ranking = 1;
+                Object.values(groupedContacts).forEach(contact => {
+                    const firstName = contact["First Name"] || "Prénom inconnu";
+                    const lastName = contact["Last Name"] || "Nom inconnu";
+                    const email = contact["Email"] || "Email inconnu";
+                    const company = contact["Company"] || "Entreprise inconnue";
+                    const position = contact["Position"] || "Métier inconnu";
 
+                    contactsHTML += `
+                        <tr>
+                            <td>
+                                <span class="">${ranking++}</span>
+                            </td>
+                            <td>
+                                <div class="d-flex">
+                                    <span class="avatar avatar-sm">
+                                        <img src="../assets/images/faces/placeholder.jpg" class="" alt="">
+                                    </span>
+                                    <div class="flex-1 ms-2">
+                                        <span class="d-block fw-semibold lh-1">${firstName} ${lastName}</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="">${email}</span>
+                            </td>
+                            <td>
+                                <span class="">${company}</span>
+                            </td>
+                            <td>
+                                <span class="">${position}</span>
+                            </td>
+                        </tr>
+                    `;
+                });
 
- 
+                // Insérer les contacts dans le tableau HTML
+                const contactsTableBody = document.querySelector('#contacts-table-body');
+                if (contactsTableBody) {
+                    contactsTableBody.innerHTML = contactsHTML;
+                } else {
+                    console.error("L'élément #contacts-table-body est introuvable.");
+                }
+            })
+            .catch(error => console.error('Erreur lors du chargement des données :', error));
+    });
+</script>
 
 </body>
 
