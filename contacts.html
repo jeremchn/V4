@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contacts</title>
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <link rel="stylesheet" href="../assets/libs/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../assets/css/icons.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.12.1/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.3.0/css/responsive.bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.2.3/css/buttons.bootstrap5.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        h1 {
+            font-size: 1.75rem;
+            font-weight: bold;
+        }
+        #company-title {
+            color: #000;
+        }
+        .table-container {
+            margin-top: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        .table th, .table td {
+            vertical-align: middle;
+        }
+        .table a {
+            text-decoration: none;
+            color: #050505;
+        }
+        .table a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 id="company-title" class="text-primary">Contacts</h1>
+            <a href="companies-tables.html" class="btn btn-secondary">
+                <i class="ri-arrow-left-line"></i> Retour à la liste des entreprises
+            </a>
+        </div>
+        <div class="table-container">
+            <table id="contacts-table" class="table table-striped table-hover table-bordered nowrap" style="width:100%">
+                <thead class="table-dark">
+                    <tr>
+                        <th>First Name</th>
+                        <th>Last Name</th>
+                        <th>Email</th>
+                        <th>Position</th>
+                        <th>Domain</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Les lignes du tableau seront générées dynamiquement ici -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.1.min.js"></script>
+    <script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.12.1/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.3.0/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.2.3/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.2.3/js/buttons.print.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.6/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.2.3/js/buttons.html5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <script>
+        // Charger les données des contacts
+        fetch('../../../contacts.csv')
+            .then(response => response.text())
+            .then(csvText => {
+                const parsedData = Papa.parse(csvText, {
+                    header: true,
+                    skipEmptyLines: true
+                });
+
+                const data = parsedData.data;
+                const tableBody = document.querySelector('#contacts-table tbody');
+                tableBody.innerHTML = '';
+
+                // Récupérer le paramètre "company" depuis l'URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const companyName = urlParams.get('company'); // Exemple : "Thermo Fisher Scientific"
+
+                // Filtrer les contacts par entreprise
+                const filteredContacts = data.filter(contact => contact['Company'] === companyName);
+
+                // Ajouter les lignes filtrées au tableau
+                filteredContacts.forEach(contact => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${contact['First Name'] || 'N/A'}</td>
+                        <td>${contact['Last Name'] || 'N/A'}</td>
+                        <td><a href="mailto:${contact['Email']}">${contact['Email'] || 'N/A'}</a></td>
+                        <td>${contact['Position'] || 'N/A'}</td>
+                        <td>${contact['Domain'] || 'N/A'}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+
+                // Afficher un message si aucun contact n'est trouvé
+                if (filteredContacts.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="5" class="text-center">Aucun contact trouvé pour cette entreprise.</td></tr>';
+                }
+
+                // Initialiser DataTables après avoir ajouté les données
+                $('#contacts-table').DataTable({
+                    responsive: true,
+                    dom: 'Bfrtip',
+                    buttons: [
+                        {
+                            extend: 'csv',
+                            text: 'Télécharger CSV',
+                            title: 'Contacts',
+                            exportOptions: {
+                                columns: ':visible'
+                            }
+                        },
+                        {
+                            extend: 'pdf',
+                            text: 'Télécharger PDF',
+                            title: 'Contacts',
+                            orientation: 'landscape',
+                            pageSize: 'A4',
+                            exportOptions: {
+                                columns: ':visible'
+                            }
+                        }
+                    ],
+                    language: {
+                        url: '../../fr-FR.json'
+                    },
+                    columnDefs: [
+                        { targets: [0, 1], searchable: true }, // Activer la recherche sur les colonnes "First Name" et "Last Name"
+                        { targets: '_all', searchable: false } // Désactiver la recherche sur les autres colonnes
+                    ]
+                });
+            })
+            .catch(error => console.error('Erreur lors du chargement des contacts :', error));
+    </script>
+</body>
+</html>

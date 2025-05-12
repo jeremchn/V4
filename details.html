@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Détails de l'entreprise</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 2em;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #1a3d7c;
+        }
+        .details {
+            margin-top: 20px;
+        }
+        .details table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .details th, .details td {
+            text-align: left;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        .details th {
+            background-color: #1a3d7c;
+            color: #fff;
+            font-weight: bold;
+        }
+        .contacts {
+            margin-top: 30px;
+        }
+        .contacts ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .contacts li {
+            margin-bottom: 1em;
+        }
+        .contacts h2 {
+            margin-bottom: 10px;
+        }
+        .no-data {
+            color: #888;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 id="companyName">Détails de l'entreprise</h1>
+        <a href="index-1.html" class="back-button">Retour au tableau</a>
+        <div class="details" id="companyDetails"></div>
+        <div class="contacts" id="contacts"></div>
+    </div>
+
+    <script>
+        const HUNTER_API_KEY = "2222faabcb33adf838c9f77752b5451af39ce567"; // Remplacez par votre clé API Hunter
+        const OPENAI_API_KEY = "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"; // Remplacez par votre clé API OpenAI
+
+        async function fetchCompanyDetails() {
+            const params = new URLSearchParams(window.location.search);
+            const company = params.get("company");
+            if (!company) return alert("Aucune entreprise spécifiée.");
+
+            document.getElementById("companyName").textContent = `Détails de l'entreprise : ${company}`;
+
+            // Affiche une phrase pendant la recherche
+            document.getElementById("companyDetails").innerHTML = "<p>Recherche d'informations en cours...</p>";
+            document.getElementById("contacts").innerHTML = "";
+
+            try {
+                // Appel à l'API Hunter pour les détails de l'entreprise
+                const hunterResponse = await fetch(`https://api.hunter.io/v2/domain-search?company=${encodeURIComponent(company)}&api_key=${HUNTER_API_KEY}`);
+                const hunterData = await hunterResponse.json();
+
+                // Appel à l'API OpenAI pour des informations supplémentaires
+                const openaiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${OPENAI_API_KEY}`
+                    },
+                    body: JSON.stringify({
+                        model: "gpt-3.5-turbo",
+                        messages: [
+                            { role: "system", content: "Tu es un assistant qui fournit des informations détaillées sur les entreprises. Retourne uniquement un objet JSON brut, sans texte additionnel ni Markdown." },
+                            { role: "user", content: `Donne toutes les informations possibles sur l'entreprise "${company}" sous forme d'objet JSON avec les colonnes suivantes : Nom de l'entreprise, Type, Industrie, Fondée, Fondateurs, Siège social, Zone de service, Principaux produits, Filiale de, Nombre d'employés, Revenu net, Site web.` }
+                        ],
+                        max_tokens: 1000,
+                        temperature: 0.7
+                    })
+                });
+
+                const openaiData = await openaiResponse.json();
+                console.log("Réponse OpenAI brute :", openaiData);
+
+                // Extraire et parser le JSON brut
+                let openaiContent;
+                try {
+                    openaiContent = JSON.parse(openaiData.choices[0].message.content);
+                } catch (err) {
+                    console.error("Erreur lors du parsing JSON :", err);
+                    document.getElementById("companyDetails").innerHTML = "<p>Erreur : La réponse de l'API OpenAI n'est pas au format attendu.</p>";
+                    return;
+                }
+
+                // Vérifiez que toutes les clés nécessaires sont présentes
+                const requiredKeys = [
+                    "Nom de l'entreprise", "Type", "Industrie", "Fondée", "Fondateurs",
+                    "Siège social", "Zone de service", "Principaux produits", "Filiale de",
+                    "Nombre d'employés", "Revenu net", "Site web"
+                ];
+
+                requiredKeys.forEach(key => {
+                    if (!(key in openaiContent)) {
+                        console.warn(`Clé manquante dans la réponse : ${key}`);
+                        openaiContent[key] = "Non défini"; // Ajoutez une valeur par défaut
+                    }
+                });
+
+                // Affichez les détails de l'entreprise
+                const companyDetails = document.getElementById("companyDetails");
+                const detailsHTML = `
+                    <table>
+                        <tr><th>Nom de l'entreprise</th><td>${openaiContent["Nom de l'entreprise"]}</td></tr>
+                        <tr><th>Type</th><td>${openaiContent["Type"]}</td></tr>
+                        <tr><th>Industrie</th><td>${openaiContent["Industrie"]}</td></tr>
+                        <tr><th>Fondée</th><td>${openaiContent["Fondée"]}</td></tr>
+                        <tr><th>Fondateurs</th><td>${openaiContent["Fondateurs"].join(", ")}</td></tr>
+                        <tr><th>Siège social</th><td>${openaiContent["Siège social"]}</td></tr>
+                        <tr><th>Zone de service</th><td>${openaiContent["Zone de service"]}</td></tr>
+                        <tr><th>Principaux produits</th><td>${openaiContent["Principaux produits"].join(", ")}</td></tr>
+                        <tr><th>Filiale de</th><td>${openaiContent["Filiale de"]}</td></tr>
+                        <tr><th>Nombre d'employés</th><td>${openaiContent["Nombre d'employés"]}</td></tr>
+                        <tr><th>Revenu net</th><td>${openaiContent["Revenu net"]}</td></tr>
+                        <tr><th>Site web</th><td><a href="${openaiContent["Site web"]}" target="_blank">${openaiContent["Site web"]}</a></td></tr>
+                    </table>
+                `;
+                companyDetails.innerHTML = detailsHTML;
+
+                // Affichez les contacts
+                const contacts = document.getElementById("contacts");
+                if (hunterData.data.emails && hunterData.data.emails.length > 0) {
+                    const contactList = hunterData.data.emails.map(email => `
+                        <li>
+                            <strong>${email.first_name || ''} ${email.last_name || ''}</strong> - 
+                            ${email.position || 'Poste inconnu'} - 
+                            <a href="mailto:${email.value}">${email.value}</a>
+                        </li>
+                    `).join("");
+                    contacts.innerHTML = `<h2>Contacts</h2><ul>${contactList}</ul>`;
+                } else {
+                    contacts.innerHTML = "<p>Aucun contact trouvé.</p>";
+                }
+            } catch (err) {
+                console.error("Erreur lors de la récupération des détails :", err);
+                document.getElementById("companyDetails").innerHTML = "<p>Erreur lors de la récupération des détails.</p>";
+            }
+        }
+
+        fetchCompanyDetails();
+    </script>
+</body>
+</html>
