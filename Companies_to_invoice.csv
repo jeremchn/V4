@@ -1,0 +1,16 @@
+Company Name,Address,Email,VAT Number,Description,Amount (excl. VAT),VAT Rate (%)
+AlphaTech,"123 Main Street Paris",contact@alphatech.com,FR12345678901,Custom software development for the e-commerce platform.,5000,15
+BioInnov,"45 Science Avenue Lyon",contact@bioinnov.fr,FR98765432109,Research and development in biotechnology.,7500,15
+GreenVolt,"89 Energy Street Marseille",info@greenvolt.com,FR19283746501,Installation of solar panels for individuals.,6200,15
+MedData,"10 Health Boulevard Toulouse",support@meddata.fr,FR56473829100,Medical data analysis for hospitals.,8800,15
+CyberGuard,"77 Defense Street Paris",contact@cyberguard.io,FR10293847561,IT security and data protection.,4300,15
+UrbanFlow,"12 City Lane Nantes",hello@urbanflow.fr,FR11223344556,Optimization of urban transport flows.,6700,15
+EduSoft,"8 School Street Lille",support@edusoft.fr,FR55667788990,Educational software for schools.,3900,15
+AgriSmart,"3 Green Path Dijon",contact@agrismart.fr,FR66778899001,Digital solutions for precision agriculture.,7100,15
+NanoLogic,"99 Microtech Street Grenoble",info@nanologic.fr,FR77889900112,Development of nanoscale electronic components.,8100,15
+CleanMotion,"21 Mobility Street Bordeaux",contact@cleanmotion.fr,FR88990011223,Shared electric vehicles for urban centers.,9200,15
+OceanBlue,"5 Sailor’s Wharf Brest",hello@oceanblue.fr,FR99001122334,Marine technologies and seawater treatment.,4600,15
+FoodChain,"14 Taste Avenue Strasbourg",contact@foodchain.fr,FR10112233445,Logistics chain for organic food products.,5300,15
+RoboLab,"76 Robotics Boulevard Montpellier",support@robolab.fr,FR20223344556,Advanced robotics for production lines.,8700,15
+SecureMed,"18 Emergency Street Nice",info@securemed.fr,FR30334455667,Medical data protection and cybersecurity.,6100,15
+EcoBuild,"33 Green Building Street Rennes",contact@ecobuild.fr,FR40445566778,Smart and eco-friendly buildings.,9400,15
